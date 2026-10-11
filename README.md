@@ -39,10 +39,20 @@ Built with **Godot 4.7** and GDScript. All visuals are drawn in code, so there a
 | 1.7.2 Save & quit from pause | `game.gd` `_save_and_quit()` |
 | 1.7.3 / 1.7.4 Continue restores progress | `main_menu.gd`, `save_manager.gd`, `game.gd` `_apply_save()` |
 
-## Files
-- `main_menu.gd`: New Game / Continue / Quit
-- `game.gd`: areas, HUD, pause, game over, save/load glue
-- `player.gd`: movement, attack, health, potions
-- `enemy.gd` / `boss.gd`: enemy AI and the boss's thorn-ring attack
-- `projectile.gd`, `pickup.gd`: thorns and potion drops
-- `save_manager.gd`: autoload that reads and writes the JSON save file
+## Project structure
+The game is built from Godot scenes, with scripts attached for the behavior:
+
+| Scene | Nodes | Script |
+|---|---|---|
+| `main_menu.tscn` | Buttons in a VBoxContainer, connected via signals | `main_menu.gd` |
+| `game.tscn` | Arena, Walls (StaticBody2D), World, HUD/pause/end screens (CanvasLayer) | `game.gd`, `arena.gd` |
+| `player.tscn` | CharacterBody2D + AttackArea (Area2D sword hitbox) + cooldown/invulnerability Timers | `player.gd` |
+| `enemy.tscn` | CharacterBody2D + Hitbox (Area2D contact damage) | `enemy.gd` |
+| `boss.tscn` | Same as enemy, stats set in the Inspector + BurstTimer | `boss.gd` |
+| `projectile.tscn` | Area2D thorn | `projectile.gd` |
+| `pickup.tscn` | Area2D potion | `pickup.gd` |
+
+- `save_manager.gd` is an autoload that reads and writes the JSON save file.
+- `fx.gd` is for floating damage numbers and particle bursts.
+- Controls are defined in **Project Settings > Input Map** (`move_*`, `attack`, `drink_potion`, `pause`).
+- Physics layers: 1 = world (walls), 2 = player, 3 = enemies.
