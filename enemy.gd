@@ -1,50 +1,45 @@
-extends Node2D
+extends CharacterBody2D
 ## Basic enemy (slime): chases the player and deals contact damage. Dies at 0 health (1.4.6).
+## Stats are exported so they can be changed in the Inspector (the boss scene does this).
 
 signal defeated(enemy)
 
+@export var max_health := 50
+@export var speed := 110.0
+@export var contact_damage := 10
+@export var color := Color(0.42, 0.86, 0.38)
+@export var display_name := "Slime"
+@export var is_boss := false
+
+var health := 0
 var radius := 14.0
-var max_health := 50
-var health := 50
-var speed := 110.0
-var contact_damage := 10
-var color := Color(0.42, 0.86, 0.38)
-var display_name := "Slime"
-var is_boss := false
 var player
-var arena: Rect2
 
 var _knockback := Vector2.ZERO
 var _hurt_flash := 0.0
 var _phase := 0.0
 
+@onready var _hitbox: Area2D = $Hitbox
+
 
 func _ready() -> void:
-	add_to_group("enemies")
+	health = max_health
+	radius = ($CollisionShape2D.shape as CircleShape2D).radius
 	_phase = randf() * 10.0
 
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	_hurt_flash -= delta
 	queue_redraw()
 	if player == null or player.dead:
 		return
-	var to_player: Vector2 = player.global_position - global_position
-	if to_player.length() > 1.0:
-		position += to_player.normalized() * speed * delta
-	position += _knockback * delta
+	velocity = global_position.direction_to(player.global_position) * speed + _knockback
 	_knockback = _knockback.move_toward(Vector2.ZERO, 1500.0 * delta)
-	var margin := Vector2(radius, radius)
-	position = position.clamp(arena.position + margin, arena.end - margin)
+	move_and_slide()
 
-	if to_player.length() < radius + player.radius:
+	# Contact damage: the Hitbox only detects the player's layer.
+	if _hitbox.overlaps_body(player):
 		player.take_damage(contact_damage)
-	_behavior(delta)
-
-
-## Overridden by bosses to add their unique attacks.
-func _behavior(_delta: float) -> void:
-	pass
 
 
 func take_damage(amount: int, hit_dir: Vector2) -> void:
@@ -59,9 +54,7 @@ func take_damage(amount: int, hit_dir: Vector2) -> void:
 
 
 func _look_dir() -> Vector2:
-	if player == null:
-		return Vector2.DOWN
-	return (player.global_position - global_position).normalized()
+	return Vector2.DOWN if player == null else global_position.direction_to(player.global_position)
 
 
 func _draw() -> void:
@@ -77,9 +70,8 @@ func _draw() -> void:
 	_ellipse(body_pos + Vector2(0, size.y * 0.35), size * Vector2(0.85, 0.55), fill.darkened(0.15))
 	_ellipse(body_pos + Vector2(-radius * 0.35, -size.y * 0.4), Vector2(radius * 0.32, radius * 0.18), Color(1, 1, 1, 0.55))
 
-	var look := _look_dir() * 2.5
 	for side in [-1, 1]:
-		var e := body_pos + Vector2(side * radius * 0.38, -size.y * 0.05) + look
+		var e := body_pos + Vector2(side * radius * 0.38, -size.y * 0.05) + _look_dir() * 2.5
 		draw_circle(e, radius * 0.2, Color(0.08, 0.1, 0.08))
 		draw_circle(e + Vector2(-0.8, -0.8), radius * 0.07, Color.WHITE)
 

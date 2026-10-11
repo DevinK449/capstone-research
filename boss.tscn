@@ -1,0 +1,37 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://boss.gd" id="1_boss"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 34.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hitbox"]
+radius = 36.0
+
+[node name="ThornGolem" type="CharacterBody2D" groups=["enemies"]]
+collision_layer = 4
+motion_mode = 1
+script = ExtResource("1_boss")
+max_health = 600
+speed = 55.0
+contact_damage = 20
+color = Color(0.55, 0.45, 0.36, 1)
+display_name = "Thorn Golem"
+is_boss = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_body")
+
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+shape = SubResource("CircleShape2D_hitbox")
+
+[node name="BurstTimer" type="Timer" parent="."]
+wait_time = 2.0
+autostart = true
+
+[connection signal="timeout" from="BurstTimer" to="." method="_on_burst_timer_timeout"]

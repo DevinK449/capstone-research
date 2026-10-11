@@ -1,14 +1,15 @@
-extends Node2D
+extends Area2D
 ## Healing potion dropped by enemies. Walk over it to pick it up.
-
-var player
 
 
 func _process(_delta: float) -> void:
 	queue_redraw()
-	if player != null and not player.dead and position.distance_to(player.position) < 26.0:
-		player.potions += 1
-		player.health_changed.emit()
+
+
+func _on_body_entered(body) -> void:
+	if body.is_in_group("player") and not body.dead:
+		body.potions += 1
+		body.health_changed.emit()
 		get_tree().call_group("game", "hit_fx", position, "+1 Potion", Color(1.0, 0.55, 0.75), 0.0)
 		queue_free()
 
